@@ -25,3 +25,16 @@ Newest entries at the bottom. Phases follow PRD §7.
 - Routes: `GET/POST /api/documents`, `GET/PATCH/DELETE /api/documents/[id]`, `POST /api/switch-user` (validates the user exists, sets httpOnly cookie).
 - UI: header with user switcher (3 seeded users), dashboard split into "Owned by me" / "Shared with me", create + rename + delete, `/doc/[id]` page (editor placeholder until P2).
 - Unknown/inaccessible documents return **404 (not 403)** so document IDs don't leak existence.
+- **Verified** (local prod server + curl): create/list/rename/delete as Alice; Bob gets 404 on Alice's doc for read *and* delete; empty-title rename rejected 400; unknown user switch rejected 400. Dashboard renders both sections.
+- **Fix during build:** Next.js route files only allow HTTP-method exports — moved `MAX_TITLE_LENGTH` out of `api/documents/route.ts` into `src/lib/validation.ts`.
+- Committed `feat: document CRUD with owned/shared list separation`, pushed, deployed.
+
+## P2 — Editor
+
+- Installed `@tiptap/react` + `@tiptap/starter-kit` v3.30.5. Checked the typings: **v3 StarterKit already bundles underline**, so no `@tiptap/extension-underline` dependency (v2-era advice would add it and cause duplicate-extension warnings).
+- `Editor.tsx` (client): toolbar (bold/italic/underline, H1–H3, paragraph, bullet/ordered list) with active-state highlighting; `onMouseDown preventDefault` on buttons so the editor keeps focus/selection when clicking the toolbar.
+- **Autosave:** 800ms debounce on `onUpdate` → `PATCH /api/documents/[id]` with `editor.getJSON()`; indicator cycles Saving… → Saved, sticky error message on failure. Last-write-wins per PRD §2.
+- `EditableTitle.tsx`: title doubles as an input (owner/editor only); Enter/blur saves, invalid titles revert.
+- Read-only mode: viewers get `editable: false` + a "Read-only" banner instead of the toolbar (exercisable once sharing lands in P3).
+- Editor typography for headings/lists lives in `globals.css` under `.tiptap-content` because Tailwind preflight resets them. Also removed the scaffold's auto dark-mode (would have produced unstyled dark surfaces).
+- **Verified** via API round-trip: heading + bold + underline + bulletList JSON persists and reads back intact; editor shell and title input server-render (TipTap itself hydrates client-side by design with `immediatelyRender: false`). Interactive typing/toolbar checked manually in the browser.
