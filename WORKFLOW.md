@@ -16,3 +16,12 @@ Newest entries at the bottom. Phases follow PRD §7.
 - **Migration:** `prisma migrate dev --name init` applied against Neon. Seeded 3 users via `prisma/seed.ts` (`user-alice` / `user-bob` / `user-carol`, upsert so re-runs are safe).
 - **Mock auth:** `src/lib/auth.ts` — identity from `doc-editor-user` cookie, defaulting to Alice; user is always resolved against the DB so server-side access checks stay real. `src/lib/prisma.ts` — standard dev-mode PrismaClient singleton.
 - **Build script:** `prisma generate && next build` so Vercel always has a fresh client.
+- **GitHub push:** first push failed (403) — active gh account was `xavier-tempo`, repo belongs to `xavjamito`. Switched remote to SSH (`git@github.com:xavjamito/doc-editor.git`), which authenticates as `xavjamito`, instead of flipping the global gh account. Remote had an initial LICENSE commit; rebased local history on top.
+- **Vercel deploy:** linked `mindspirit/doc-editor`, added `DATABASE_URL` + `DIRECT_URL` to production/preview/development, deployed via CLI (after a required CLI upgrade). Production alias **https://doc-editor-xi.vercel.app** is publicly reachable (200); deployment-specific URLs are behind Vercel SSO, which is fine for reviewers.
+
+## P1 — Document CRUD
+
+- **Plan:** server components read from Prisma directly for pages; all mutations go through `/api` route handlers; access checks centralized in a pure `permissions.ts` resolver (built now so every route uses it from day one, extended in P3, unit-tested in P5). Decision detail in ARCHITECTURE.md (AD-5).
+- Routes: `GET/POST /api/documents`, `GET/PATCH/DELETE /api/documents/[id]`, `POST /api/switch-user` (validates the user exists, sets httpOnly cookie).
+- UI: header with user switcher (3 seeded users), dashboard split into "Owned by me" / "Shared with me", create + rename + delete, `/doc/[id]` page (editor placeholder until P2).
+- Unknown/inaccessible documents return **404 (not 403)** so document IDs don't leak existence.
