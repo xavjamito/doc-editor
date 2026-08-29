@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Editor from "./Editor";
+import Spinner from "./Spinner";
 
 interface VersionMeta {
   id: string;
@@ -27,6 +28,7 @@ export default function VersionHistoryDialog({ docId, canRestore }: Props) {
   const [open, setOpen] = useState(false);
   const [versions, setVersions] = useState<VersionMeta[] | null>(null);
   const [selected, setSelected] = useState<VersionDetail | null>(null);
+  const [loadingPreviewId, setLoadingPreviewId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -50,11 +52,16 @@ export default function VersionHistoryDialog({ docId, canRestore }: Props) {
 
   async function preview(versionId: string) {
     setError(null);
-    const res = await fetch(`/api/documents/${docId}/versions/${versionId}`);
-    if (res.ok) {
-      setSelected(await res.json());
-    } else {
-      setError("Failed to load version");
+    setLoadingPreviewId(versionId);
+    try {
+      const res = await fetch(`/api/documents/${docId}/versions/${versionId}`);
+      if (res.ok) {
+        setSelected(await res.json());
+      } else {
+        setError("Failed to load version");
+      }
+    } finally {
+      setLoadingPreviewId(null);
     }
   }
 
@@ -118,7 +125,9 @@ export default function VersionHistoryDialog({ docId, canRestore }: Props) {
             )}
 
             {versions === null ? (
-              <p className="py-4 text-sm text-zinc-500">Loading…</p>
+              <p className="flex items-center gap-2 py-4 text-sm text-zinc-500">
+                <Spinner /> Loading version history…
+              </p>
             ) : versions.length === 0 ? (
               <p className="py-4 text-sm text-zinc-500">
                 No versions yet. Versions are captured automatically as the
@@ -131,14 +140,18 @@ export default function VersionHistoryDialog({ docId, canRestore }: Props) {
                     <li key={v.id}>
                       <button
                         onClick={() => preview(v.id)}
+                        disabled={loadingPreviewId !== null}
                         className={`w-full rounded-md px-3 py-2 text-left text-sm transition ${
                           selected?.id === v.id
                             ? "bg-blue-50 text-blue-800"
                             : "hover:bg-zinc-100"
-                        }`}
+                        } disabled:opacity-60`}
                       >
-                        <span className="block font-medium">
+                        <span className="flex items-center gap-2 font-medium">
                           {new Date(v.createdAt).toLocaleString()}
+                          {loadingPreviewId === v.id && (
+                            <Spinner className="h-3 w-3" />
+                          )}
                         </span>
                         <span className="block truncate text-xs text-zinc-500">
                           {v.title} · by {v.createdBy.name}
@@ -172,6 +185,10 @@ export default function VersionHistoryDialog({ docId, canRestore }: Props) {
                         readOnlyLabel="Preview — restoring replaces the current content"
                       />
                     </>
+                  ) : loadingPreviewId ? (
+                    <p className="flex items-center gap-2 py-4 text-sm text-zinc-500">
+                      <Spinner /> Loading preview…
+                    </p>
                   ) : (
                     <p className="py-4 text-sm text-zinc-500">
                       Select a version to preview it.

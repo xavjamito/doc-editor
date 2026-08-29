@@ -87,3 +87,11 @@ Newest entries at the bottom. Phases follow PRD §7.
 - UI: History button on the doc page → dialog with version list (timestamp, title, author), read-only TipTap preview (reused `Editor` with new `readOnlyLabel` prop), Restore button for writers only. Main editor remounts after restore via `key={doc.updatedAt}`.
 - Tests: 4 dialog component tests + 6 snapshot-rule tests → suite now **48 tests**, lint + build clean.
 - **Verified** end-to-end with curl (11 checks): first save creates no version; second save preserves prior state; same-user saves in-window collapse; a different editor triggers a snapshot; preview returns exact old content; viewer restore → 403 but can list history; restore replaces content and preserves the pre-restore state (3 versions). Note: a made-up identity cookie resolves to the default seeded user by design (mock auth, AD-3) — enforcement applies to the resolved user.
+
+## Polish — Graceful loading states
+
+- Audit found rename/delete on `DocumentCard` and `EditableTitle` gave **no** feedback during API calls; buttons had text-only pending; dialogs had bare "Loading…" text; route navigations had nothing.
+- Added shared `Spinner` (role="status" for a11y/tests) and route-level `loading.tsx` skeletons (dashboard + doc page) so server-component navigations show a pulse skeleton instead of a blank wait.
+- Key mechanism: `useTransition` around `router.refresh()`/`router.push()` in every mutating component — pending UI now holds until the *refreshed data is actually on screen*, not just until the fetch resolves (the gap that made the old states feel janky).
+- Per-component: UserSwitcher (spinner replaces "Acting as", select disabled), New/Upload buttons (spinner + disabled through navigation), DocumentCard (card dims + spinner; "Deleting…" label; actions disabled while busy; also made hover actions keyboard-visible via `focus-within`), EditableTitle (input disabled + spinner while saving), ShareDialog (header spinner during grant/revoke, labelled loading line), VersionHistoryDialog (per-version preview spinner, list disabled during load, "Loading preview…" pane).
+- 3 new in-flight tests (never-resolving fetch → Creating…/Uploading…/Deleting… disabled states) → **51 tests**, lint + build clean.

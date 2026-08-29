@@ -90,6 +90,19 @@ describe("DocumentCard", () => {
     });
   });
 
+  it("shows a Deleting state while the delete is in flight", async () => {
+    const fetchMock = mockFetch();
+    fetchMock.mockReturnValue(new Promise(() => {})); // never resolves
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    render(<DocumentCard doc={ownedDoc} isOwned />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+    const button = await screen.findByRole("button", { name: "Deleting…" });
+    expect(button).toBeDisabled();
+    expect(screen.getByRole("status")).toBeInTheDocument(); // spinner
+  });
+
   it("does not delete when confirmation is declined", async () => {
     const fetchMock = mockFetch();
     vi.stubGlobal("confirm", vi.fn(() => false));

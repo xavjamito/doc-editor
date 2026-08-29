@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Spinner from "./Spinner";
 
 interface UserInfo {
   id: string;
@@ -105,7 +106,10 @@ export default function ShareDialog({ docId, allUsers, ownerId }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Share document</h2>
+              <span className="flex items-center gap-2">
+                <h2 className="text-base font-semibold">Share document</h2>
+                {pending && <Spinner />}
+              </span>
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close"
@@ -122,7 +126,9 @@ export default function ShareDialog({ docId, allUsers, ownerId }: Props) {
             )}
 
             {shares === null ? (
-              <p className="py-4 text-sm text-zinc-500">Loading…</p>
+              <p className="flex items-center gap-2 py-4 text-sm text-zinc-500">
+                <Spinner /> Loading sharing info…
+              </p>
             ) : (
               <ul className="space-y-2">
                 {candidates.map((u) => {

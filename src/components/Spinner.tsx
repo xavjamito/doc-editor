@@ -1,0 +1,9 @@
+export default function Spinner({ className = "" }: { className?: string }) {
+  return (
+    <span
+      role="status"
+      aria-label="Loading"
+      className={`inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-zinc-300 border-t-blue-600 ${className}`}
+    />
+  );
+}

@@ -31,6 +31,18 @@ describe("UploadButton", () => {
     expect((init?.body as FormData).get("file")).toBe(file);
   });
 
+  it("shows a disabled Uploading state while the request is in flight", async () => {
+    const fetchMock = mockFetch();
+    fetchMock.mockReturnValue(new Promise(() => {})); // never resolves
+    const { container } = render(<UploadButton />);
+
+    const file = new File(["hello"], "notes.txt", { type: "text/plain" });
+    await userEvent.upload(getFileInput(container), file);
+
+    const button = await screen.findByRole("button", { name: /Uploading…/ });
+    expect(button).toBeDisabled();
+  });
+
   it("shows the server rejection message", async () => {
     const fetchMock = mockFetch();
     fetchMock.mockResolvedValue(

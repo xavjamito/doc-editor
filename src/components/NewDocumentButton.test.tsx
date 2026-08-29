@@ -24,6 +24,17 @@ describe("NewDocumentButton", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/documents", { method: "POST" });
   });
 
+  it("shows a disabled Creating state while the request is in flight", async () => {
+    const fetchMock = mockFetch();
+    fetchMock.mockReturnValue(new Promise(() => {})); // never resolves
+    render(<NewDocumentButton />);
+
+    await userEvent.click(screen.getByRole("button", { name: "New document" }));
+
+    const button = await screen.findByRole("button", { name: /Creating…/ });
+    expect(button).toBeDisabled();
+  });
+
   it("shows the server error message on failure", async () => {
     const fetchMock = mockFetch();
     fetchMock.mockResolvedValue(jsonResponse({ error: "Database unavailable" }, false, 500));

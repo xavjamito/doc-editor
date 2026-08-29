@@ -1,13 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useTransition } from "react";
+import Spinner from "./Spinner";
 
 export default function UploadButton() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState(false);
+  const [isNavigating, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const busy = pending || isNavigating;
 
   async function handleFile(file: File) {
     setPending(true);
@@ -20,12 +23,14 @@ export default function UploadButton() {
       if (!res.ok) {
         throw new Error(body?.error ?? "Upload failed");
       }
-      router.push(`/doc/${body.id}`);
-      router.refresh();
+      startTransition(() => {
+        router.push(`/doc/${body.id}`);
+        router.refresh();
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
-      setPending(false);
     } finally {
+      setPending(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   }
@@ -35,10 +40,11 @@ export default function UploadButton() {
       <div className="flex items-center gap-2">
         <button
           onClick={() => inputRef.current?.click()}
-          disabled={pending}
-          className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 disabled:opacity-50"
+          disabled={busy}
+          className="flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 disabled:opacity-60"
         >
-          {pending ? "Uploading…" : "Upload .txt / .md"}
+          {busy && <Spinner />}
+          {busy ? "Uploading…" : "Upload .txt / .md"}
         </button>
         <input
           ref={inputRef}
