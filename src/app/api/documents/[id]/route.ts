@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { canRead, canWrite, isOwner, resolveAccess } from "@/lib/permissions";
 import { MAX_CONTENT_BYTES, MAX_TITLE_LENGTH } from "@/lib/validation";
+import { shouldSnapshot } from "@/lib/versions";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -91,9 +92,38 @@ export async function PATCH(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
+  if (data.content !== undefined) {
+    const latest = await prisma.documentVersion.findFirst({
+      where: { documentId: id },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
+    });
+    if (
+      shouldSnapshot({
+        hasExistingContent: doc.content !== null,
+        latestVersionAt: latest?.createdAt ?? null,
+        currentStateAuthorId: doc.lastEditedById,
+        editorId: user.id,
+        now: new Date(),
+      })
+    ) {
+      await prisma.documentVersion.create({
+        data: {
+          documentId: id,
+          title: doc.title,
+          content: doc.content as Prisma.InputJsonValue,
+          createdById: doc.lastEditedById ?? doc.ownerId,
+        },
+      });
+    }
+  }
+
   const updated = await prisma.document.update({
     where: { id },
-    data,
+    data: {
+      ...data,
+      ...(data.content !== undefined ? { lastEditedById: user.id } : {}),
+    },
     select: { id: true, title: true, updatedAt: true },
   });
   return NextResponse.json(updated);

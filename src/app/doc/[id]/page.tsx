@@ -7,6 +7,7 @@ import AppHeader from "@/components/AppHeader";
 import EditableTitle from "@/components/EditableTitle";
 import Editor from "@/components/Editor";
 import ShareDialog from "@/components/ShareDialog";
+import VersionHistoryDialog from "@/components/VersionHistoryDialog";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,7 @@ export default async function DocumentPage({
                 </>
               )}
             </p>
+            <VersionHistoryDialog docId={doc.id} canRestore={writable} />
             {access === "owner" && (
               <ShareDialog
                 docId={doc.id}
@@ -70,7 +72,9 @@ export default async function DocumentPage({
             canEdit={writable}
           />
         </div>
+        {/* keyed by updatedAt so a restored version remounts the editor with fresh content */}
         <Editor
+          key={doc.updatedAt.getTime()}
           docId={doc.id}
           initialContent={doc.content}
           readOnly={!writable}

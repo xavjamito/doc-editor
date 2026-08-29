@@ -11,6 +11,7 @@ A browser-based rich-text document editor with file upload and role-based sharin
 - **File upload**: turn a `.txt` or `.md` file (max 1 MB) into a new editable document
 - **Sharing**: owners grant/revoke viewer or editor access; access is enforced server-side on every read and write
 - **Document list** split into *Owned by me* and *Shared with me*
+- **Version history**: automatic snapshots (captured when a different user edits, or every ~2 minutes of changes) with preview and restore — restoring is itself undoable
 - **Persistence**: documents and shares live in Postgres (Neon); formatting survives reload as TipTap JSON
 
 ## Test users

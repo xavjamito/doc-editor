@@ -31,7 +31,8 @@ Everything in the PRD's functional scope, end to end, on the live deployment:
 - `.txt` / `.md` upload → new document, with clear rejections (wrong type, empty, >1 MB)
 - Sharing with viewer/editor roles: grant, role change, revoke — enforced **server-side** on every read/write (verified by a 15-case cross-user matrix, plus unit tests)
 - Persistence in Neon Postgres; 3 seeded users; deployed on Vercel
-- 14 Vitest tests (permission resolver, import converters); lint and build clean
+- **Stretch (PRD §11): document version history** — automatic write-time snapshots (different-editor or 2-minute rule), preview, and restore; restore preserves the pre-restore state
+- 48 Vitest tests (permission resolver, import converters, snapshot rule, all client components); lint and build clean
 
 ## What is incomplete
 

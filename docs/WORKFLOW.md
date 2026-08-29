@@ -78,3 +78,12 @@ Newest entries at the bottom. Phases follow PRD §7.
 - 24 new tests across 7 files: UserSwitcher (render + switch POST/refresh), NewDocumentButton (create/navigate, server-error display), UploadButton (FormData upload/navigate, rejection message, input reset), EditableTitle (read-only heading, Enter-to-save, unchanged/empty no-op, revert on 403), DocumentCard (link, shared metadata, viewer buttons hidden, editor rename-only, rename PATCH, delete confirm/decline), ShareDialog (owner excluded from candidates, existing roles shown, grant POST, revoke DELETE, error surface), Editor (read-only banner vs toolbar; TipTap mounts fine in jsdom).
 - **Fix during build:** `userEvent.upload` honors the input's `accept` attribute and silently skipped the `.pdf` fixture — passed `applyAccept: false` since the test targets the server-side rejection path.
 - Totals: **38 tests** (14 lib + 24 component), lint clean, build clean.
+
+## Stretch — Document version history (PRD §11)
+
+- Schema: `DocumentVersion` (title, content, `createdBy`, timestamp, cascade on doc delete) + `Document.lastEditedById` for correct snapshot attribution. Migration `document_versions` applied to Neon.
+- Snapshot rule as a pure function (`shouldSnapshot`, 6 unit tests): never snapshot empty docs; always before first overwrite of real content; always when a **different user** overwrites someone else's state; otherwise collapse same-user saves within a 2-minute window. Rationale in ARCHITECTURE.md AD-8.
+- API: `GET /api/documents/[id]/versions` (list, read access), `GET .../versions/[versionId]` (content preview, read access), `POST .../versions/[versionId]` (restore, write access; current state snapshotted first inside a transaction).
+- UI: History button on the doc page → dialog with version list (timestamp, title, author), read-only TipTap preview (reused `Editor` with new `readOnlyLabel` prop), Restore button for writers only. Main editor remounts after restore via `key={doc.updatedAt}`.
+- Tests: 4 dialog component tests + 6 snapshot-rule tests → suite now **48 tests**, lint + build clean.
+- **Verified** end-to-end with curl (11 checks): first save creates no version; second save preserves prior state; same-user saves in-window collapse; a different editor triggers a snapshot; preview returns exact old content; viewer restore → 403 but can list history; restore replaces content and preserves the pre-restore state (3 versions). Note: a made-up identity cookie resolves to the default seeded user by design (mock auth, AD-3) — enforcement applies to the resolved user.

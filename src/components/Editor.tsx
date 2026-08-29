@@ -10,6 +10,7 @@ interface Props {
   docId: string;
   initialContent: unknown;
   readOnly: boolean;
+  readOnlyLabel?: string;
 }
 
 const AUTOSAVE_DEBOUNCE_MS = 800;
@@ -106,7 +107,12 @@ function Toolbar({ editor }: { editor: TiptapEditor }) {
   );
 }
 
-export default function Editor({ docId, initialContent, readOnly }: Props) {
+export default function Editor({
+  docId,
+  initialContent,
+  readOnly,
+  readOnlyLabel = "Read-only — you have viewer access",
+}: Props) {
   const [status, setStatus] = useState<SaveStatus>("saved");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -158,9 +164,7 @@ export default function Editor({ docId, initialContent, readOnly }: Props) {
     <div className="rounded-lg border border-zinc-200 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50/50 rounded-t-lg">
         {readOnly ? (
-          <p className="px-3 py-2 text-xs text-zinc-500">
-            Read-only — you have viewer access
-          </p>
+          <p className="px-3 py-2 text-xs text-zinc-500">{readOnlyLabel}</p>
         ) : (
           <div className="flex-1">{editor && <Toolbar editor={editor} />}</div>
         )}

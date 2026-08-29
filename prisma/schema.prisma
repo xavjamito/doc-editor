@@ -9,22 +9,40 @@ datasource db {
 }
 
 model User {
-  id        String          @id @default(cuid())
-  name      String
-  email     String          @unique
-  documents Document[]
-  shares    DocumentShare[]
+  id              String            @id @default(cuid())
+  name            String
+  email           String            @unique
+  documents       Document[]
+  shares          DocumentShare[]
+  editedDocuments Document[]        @relation("LastEditor")
+  versions        DocumentVersion[]
 }
 
 model Document {
-  id        String          @id @default(cuid())
-  title     String
-  content   Json?
-  ownerId   String
-  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  shares    DocumentShare[]
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id             String            @id @default(cuid())
+  title          String
+  content        Json?
+  ownerId        String
+  owner          User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  lastEditedById String?
+  lastEditedBy   User?             @relation("LastEditor", fields: [lastEditedById], references: [id])
+  shares         DocumentShare[]
+  versions       DocumentVersion[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model DocumentVersion {
+  id          String   @id @default(cuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  title       String
+  content     Json?
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([documentId, createdAt])
 }
 
 model DocumentShare {
