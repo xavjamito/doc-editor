@@ -6,7 +6,7 @@
 |---|---|
 | Source code | This repository — https://github.com/xavjamito/doc-editor |
 | Live product URL | https://doc-editor-xi.vercel.app |
-| Setup & run instructions | [README.md](README.md) |
+| Setup & run instructions | [README.md](../README.md) |
 | Architecture note | [ARCHITECTURE.md](ARCHITECTURE.md) (decisions AD-1…AD-7) + [PRD.md](PRD.md) §5–6 (stack rationale) |
 | AI workflow note | [AI_WORKFLOW.md](AI_WORKFLOW.md) |
 | Build log | [WORKFLOW.md](WORKFLOW.md) (chronological, per phase) |

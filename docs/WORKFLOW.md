@@ -70,3 +70,11 @@ Newest entries at the bottom. Phases follow PRD §7.
 - AI_WORKFLOW.md: tools, where AI helped, five concrete changed/rejected AI outputs (kept as a running log during the build), verification approach.
 - SUBMISSION.md: included items, review flow for sharing, working/incomplete/next per PRD §8. `VIDEO_URL.txt` to be added after recording.
 - Committed `docs: setup, architecture, AI workflow, submission notes`, pushed, deployed.
+
+## Post-P6 — Docs reorganization + component tests
+
+- Moved PRD.md, WORKFLOW.md, ARCHITECTURE.md, AI_WORKFLOW.md, SUBMISSION.md into `docs/` (via `git mv` to preserve history); README stays at root per convention. Updated cross-links in README and SUBMISSION.
+- Component unit tests: added `@testing-library/react` + `user-event` + `jest-dom` + `jsdom`, `vitest.config.ts` (react plugin, jsdom env, `@` alias) and `vitest.setup.ts` (jest-dom matchers, auto-cleanup).
+- 24 new tests across 7 files: UserSwitcher (render + switch POST/refresh), NewDocumentButton (create/navigate, server-error display), UploadButton (FormData upload/navigate, rejection message, input reset), EditableTitle (read-only heading, Enter-to-save, unchanged/empty no-op, revert on 403), DocumentCard (link, shared metadata, viewer buttons hidden, editor rename-only, rename PATCH, delete confirm/decline), ShareDialog (owner excluded from candidates, existing roles shown, grant POST, revoke DELETE, error surface), Editor (read-only banner vs toolbar; TipTap mounts fine in jsdom).
+- **Fix during build:** `userEvent.upload` honors the input's `accept` attribute and silently skipped the `.pdf` fixture — passed `applyAccept: false` since the test targets the server-side rejection path.
+- Totals: **38 tests** (14 lib + 24 component), lint clean, build clean.

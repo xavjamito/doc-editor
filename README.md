@@ -15,7 +15,7 @@ A browser-based rich-text document editor with file upload and role-based sharin
 
 ## Test users
 
-There is no signup — authentication is deliberately mocked (see ARCHITECTURE.md / PRD §2). Use the **"Acting as"** switcher in the header to change identity:
+There is no signup — authentication is deliberately mocked (see docs/ARCHITECTURE.md / PRD §2). Use the **"Acting as"** switcher in the header to change identity:
 
 | User | Email | Typical role in demos |
 |---|---|---|
@@ -64,10 +64,13 @@ npm run dev          # http://localhost:3000
 
 ## Project notes
 
-- **PRD.md** — product requirements and deliberate scope cuts
-- **ARCHITECTURE.md** — architectural decisions with rationale (AD-1…AD-7)
-- **WORKFLOW.md** — chronological build log (steps, decisions, verifications)
-- **AI_WORKFLOW.md** — how AI tools were used, including rejected AI output
+All project documentation lives in [docs/](docs/):
+
+- **[docs/PRD.md](docs/PRD.md)** — product requirements and deliberate scope cuts
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — architectural decisions with rationale (AD-1…AD-7)
+- **[docs/WORKFLOW.md](docs/WORKFLOW.md)** — chronological build log (steps, decisions, verifications)
+- **[docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md)** — how AI tools were used, including rejected AI output
+- **[docs/SUBMISSION.md](docs/SUBMISSION.md)** — submission checklist and review flow
 
 ## Known limits (deliberate)
 
