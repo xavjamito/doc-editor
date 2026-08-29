@@ -1,0 +1,18 @@
+# WORKFLOW — Build Log
+
+Running log of every workflow step, decision, and code change during the build.
+Newest entries at the bottom. Phases follow PRD §7.
+
+---
+
+## P0 — Scaffold & deploy
+
+- **Env check:** Node v22.17.0, npm 10.9.2, git 2.49.0, Vercel CLI logged in as `xavier-1622`. All prerequisites present.
+- **Scaffold:** `create-next-app@latest` (Next.js 16.3.3, TypeScript, Tailwind v4, App Router, `src/` dir, npm). Scaffolded into a temp subdir and moved to repo root because the directory already contained PRD/notes files that `create-next-app` would refuse to touch.
+- **Git:** `git init` (via create-next-app), branch `main`, remote `origin` → `github.com/xavjamito/doc-editor`. Confirmed `.env*` is gitignored before writing secrets.
+- **Prisma:** npm resolved `prisma@7` by default. **Rejected Prisma 7** — it requires driver adapters (`@prisma/adapter-pg`) and a new `prisma.config.ts` setup; extra plumbing with no benefit inside a 4–6h timebox. Pinned `prisma@^6` + `@prisma/client@^6`. (Decision detail in ARCHITECTURE.md.)
+- **Schema:** `User`, `Document` (content as nullable `Json`), `DocumentShare` with `@@unique([documentId, userId])` and a `ShareRole` enum (`viewer` | `editor`) — exactly PRD §6.
+- **Neon:** `DATABASE_URL` uses the pooled endpoint (runtime); added `DIRECT_URL` (non-pooled, `-pooler` stripped from host) as Prisma `directUrl` because migrations need a direct connection through PgBouncer-style poolers.
+- **Migration:** `prisma migrate dev --name init` applied against Neon. Seeded 3 users via `prisma/seed.ts` (`user-alice` / `user-bob` / `user-carol`, upsert so re-runs are safe).
+- **Mock auth:** `src/lib/auth.ts` — identity from `doc-editor-user` cookie, defaulting to Alice; user is always resolved against the DB so server-side access checks stay real. `src/lib/prisma.ts` — standard dev-mode PrismaClient singleton.
+- **Build script:** `prisma generate && next build` so Vercel always has a fresh client.
