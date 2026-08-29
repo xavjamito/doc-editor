@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import AppHeader from "@/components/AppHeader";
 import DocumentCard from "@/components/DocumentCard";
 import NewDocumentButton from "@/components/NewDocumentButton";
+import UploadButton from "@/components/UploadButton";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,10 @@ export default async function DashboardPage() {
               Signed in as {user.name}
             </p>
           </div>
-          <NewDocumentButton />
+          <div className="flex items-start gap-2">
+            <UploadButton />
+            <NewDocumentButton />
+          </div>
         </div>
 
         <section>

@@ -49,3 +49,39 @@ TipTap/ProseMirror document as-is; `null` = empty document.
 **Rationale:** Round-tripping structured editor state beats HTML string storage
 (no sanitization/parsing drift, formatting survives reload — PRD §4.4). Postgres
 `jsonb` keeps it queryable if ever needed.
+
+## AD-5: Server components read, API routes mutate
+
+**Decision:** Pages (dashboard, doc page) are server components querying Prisma
+directly; every mutation (create/rename/delete/save/share/upload) goes through
+`/api` route handlers; identity always comes from the auth cookie, never from
+request payloads.
+
+**Rationale:** Direct server-component reads avoid a pointless HTTP hop to our
+own API; route handlers give mutations a single, curl-testable enforcement
+surface. Both paths share the same pure permission resolver
+(`src/lib/permissions.ts`), so read and write access rules cannot drift apart.
+The resolver is pure (no DB calls) precisely so it can be unit-tested without
+mocking Prisma (P5).
+
+## AD-6: 404 for inaccessible documents
+
+**Decision:** Requests for documents that don't exist *or* that the user cannot
+read both return 404. 403 is reserved for "you can see this but can't do that"
+(viewer trying to write, non-owner trying to share/delete).
+
+**Rationale:** Returning 403 on existing-but-unshared documents would leak which
+IDs exist. Distinguishing read-denied from missing has no product value here.
+
+## AD-7: Markdown import via marked → HTML → `generateJSON`
+
+**Decision:** `.md` uploads are parsed with `marked`, then converted to TipTap
+JSON with `@tiptap/html/server` against the StarterKit schema. `.txt` uploads
+are split on blank lines into plain paragraphs.
+
+**Rationale:** Reuses TipTap's own schema as the sanitizer — only nodes/marks the
+editor supports survive the conversion (script tags and arbitrary HTML embedded
+in markdown are silently dropped), so imported content is exactly as expressive
+as content typed in the editor. No hand-rolled markdown-to-ProseMirror mapping
+to maintain. Verified `@tiptap/html/server` is the Node-safe import (the default
+`@tiptap/html` entry point throws outside the browser).

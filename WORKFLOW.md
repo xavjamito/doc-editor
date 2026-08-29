@@ -46,3 +46,10 @@ Newest entries at the bottom. Phases follow PRD §7.
 - UI: Share button + dialog on the doc page (owner only). Since there are exactly 3 seeded users, the dialog lists every other user with a No access / Viewer / Editor select + Revoke — simpler and more reviewable than an email-invite flow.
 - Server enforcement needed **no new work** on document routes: they've gone through `canRead`/`canWrite` since P1.
 - **Verified** full matrix with curl as Alice/Bob/Carol (15 checks): no access → 404; editor can read+write; viewer can read but write → 403; non-owner share management → 403; non-owner delete → 403; self-share → 400; bad role → 400; revoke drops access back to 404; viewer→editor upgrade enables writes.
+- Committed `feat: role-based sharing with server-enforced access control`, pushed, deployed.
+
+## P4 — File upload
+
+- `POST /api/upload` (multipart): validates extension (`.txt`/`.md` only), size (≤1 MB), non-empty; title derived from filename. Conversion in `src/lib/import.ts` — `.md` via `marked` → HTML → `generateJSON` from **`@tiptap/html/server`** (the default `@tiptap/html` import throws in Node — caught this by testing before wiring it in); `.txt` split on blank lines into paragraphs. Schema-based conversion doubles as sanitization (ARCHITECTURE.md AD-7).
+- `UploadButton` on the dashboard: hidden file input, inline error display, navigates to the new doc on success. Supported types + limit stated on the button/UI.
+- **Verified** with curl: `.md` becomes heading/bold/bulletList nodes; `.txt` becomes paragraphs; `.pdf`, empty file, 1.06 MB file, and missing file field each rejected 400 with a clear message.
