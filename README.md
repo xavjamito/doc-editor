@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Doc Editor — Lightweight Collaborative Document Editor
 
-## Getting Started
+A browser-based rich-text document editor with file upload and role-based sharing, built for the Ajaia AI-Native Assessment.
 
-First, run the development server:
+**Live deployment:** https://doc-editor-xi.vercel.app
+
+## Features
+
+- **Rich-text editing** (TipTap): bold, italic, underline, headings (H1–H3), bulleted and numbered lists
+- **Autosave** with a debounced Saving…/Saved indicator (last-write-wins)
+- **File upload**: turn a `.txt` or `.md` file (max 1 MB) into a new editable document
+- **Sharing**: owners grant/revoke viewer or editor access; access is enforced server-side on every read and write
+- **Document list** split into *Owned by me* and *Shared with me*
+- **Persistence**: documents and shares live in Postgres (Neon); formatting survives reload as TipTap JSON
+
+## Test users
+
+There is no signup — authentication is deliberately mocked (see ARCHITECTURE.md / PRD §2). Use the **"Acting as"** switcher in the header to change identity:
+
+| User | Email | Typical role in demos |
+|---|---|---|
+| Alice Owner | alice@example.com | Creates and shares documents |
+| Bob Editor | bob@example.com | Granted editor access |
+| Carol Viewer | carol@example.com | Granted viewer access |
+
+To demo sharing: as Alice, open a document → **Share** → grant Bob *editor* and Carol *viewer* → switch users in the header and observe what each can see and do.
+
+## Local setup
+
+Requirements: Node 20+, npm, a Postgres database (a free [Neon](https://neon.tech) project works out of the box).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/xavjamito/doc-editor.git
+cd doc-editor
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create `.env` in the project root:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+DATABASE_URL="postgresql://...pooled connection string..."
+DIRECT_URL="postgresql://...direct (non-pooled) connection string..."
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+For Neon, `DATABASE_URL` is the pooled endpoint (host contains `-pooler`) and `DIRECT_URL` is the same string with `-pooler` removed. For plain local Postgres, both can be identical.
 
-## Learn More
+Then:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run db:migrate   # create tables
+npm run db:seed      # seed the 3 users
+npm run dev          # http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build (runs `prisma generate` first) |
+| `npm test` | Vitest suite (permission resolver + file import) |
+| `npm run lint` | ESLint |
+| `npm run db:migrate` / `db:seed` | Prisma migration / user seeding |
 
-## Deploy on Vercel
+## Project notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **PRD.md** — product requirements and deliberate scope cuts
+- **ARCHITECTURE.md** — architectural decisions with rationale (AD-1…AD-7)
+- **WORKFLOW.md** — chronological build log (steps, decisions, verifications)
+- **AI_WORKFLOW.md** — how AI tools were used, including rejected AI output
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Known limits (deliberate)
+
+- No real auth (mocked user switcher — the skill under test is access logic, not auth plumbing)
+- No real-time collaboration; concurrent edits are last-write-wins
+- Uploads limited to `.txt`/`.md` (no `.docx`)

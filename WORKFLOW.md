@@ -61,3 +61,12 @@ Newest entries at the bottom. Phases follow PRD §7.
 - Hardening: `PATCH /api/documents/[id]` now caps request bodies at 2 MB (413) so autosave payloads can't grow unbounded. Verified 2.2 MB → 413, normal → 200.
 - Lint fix: `react-hooks/set-state-in-effect` in ShareDialog — replaced the `useEffect`-on-open with fetching in the open-button handler (less code, same behavior, better React style).
 - `npm run lint`, `npm test` (14/14), `npm run build` all clean.
+- Committed `test: permission resolver coverage; harden validation`, pushed, deployed.
+
+## P6 — Docs
+
+- **Production smoke test** against https://doc-editor-xi.vercel.app before writing docs: home 200; create as Alice; Bob 404 pre-share; grant viewer 201; Bob read 200 / write 403; `.md` upload converts; test docs cleaned up afterwards.
+- Rewrote README (features, seeded users, local setup incl. Neon pooled/direct URL note, scripts, deliberate limits).
+- AI_WORKFLOW.md: tools, where AI helped, five concrete changed/rejected AI outputs (kept as a running log during the build), verification approach.
+- SUBMISSION.md: included items, review flow for sharing, working/incomplete/next per PRD §8. `VIDEO_URL.txt` to be added after recording.
+- Committed `docs: setup, architecture, AI workflow, submission notes`, pushed, deployed.
