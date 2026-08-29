@@ -6,6 +6,7 @@ import { canRead, canWrite, resolveAccess } from "@/lib/permissions";
 import AppHeader from "@/components/AppHeader";
 import EditableTitle from "@/components/EditableTitle";
 import Editor from "@/components/Editor";
+import ShareDialog from "@/components/ShareDialog";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,13 @@ export default async function DocumentPage({
 
   const access = resolveAccess(user.id, doc);
   const writable = canWrite(user.id, doc);
+  const allUsers =
+    access === "owner"
+      ? await prisma.user.findMany({
+          orderBy: { name: "asc" },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
 
   return (
     <>
@@ -35,16 +43,25 @@ export default async function DocumentPage({
           <Link href="/" className="text-sm text-blue-600 hover:underline">
             ← All documents
           </Link>
-          <p className="text-xs text-zinc-500">
-            {access === "owner" ? (
-              "You own this document"
-            ) : (
-              <>
-                Owned by {doc.owner.name} ·{" "}
-                <span className="capitalize">{access}</span> access
-              </>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-zinc-500">
+              {access === "owner" ? (
+                "You own this document"
+              ) : (
+                <>
+                  Owned by {doc.owner.name} ·{" "}
+                  <span className="capitalize">{access}</span> access
+                </>
+              )}
+            </p>
+            {access === "owner" && (
+              <ShareDialog
+                docId={doc.id}
+                allUsers={allUsers}
+                ownerId={user.id}
+              />
             )}
-          </p>
+          </div>
         </div>
         <div className="mb-4">
           <EditableTitle

@@ -38,3 +38,11 @@ Newest entries at the bottom. Phases follow PRD §7.
 - Read-only mode: viewers get `editable: false` + a "Read-only" banner instead of the toolbar (exercisable once sharing lands in P3).
 - Editor typography for headings/lists lives in `globals.css` under `.tiptap-content` because Tailwind preflight resets them. Also removed the scaffold's auto dark-mode (would have produced unstyled dark surfaces).
 - **Verified** via API round-trip: heading + bold + underline + bulletList JSON persists and reads back intact; editor shell and title input server-render (TipTap itself hydrates client-side by design with `immediatelyRender: false`). Interactive typing/toolbar checked manually in the browser.
+- Committed `feat: rich-text editor with autosave`, pushed, deployed.
+
+## P3 — Sharing & access control
+
+- Routes: `GET/POST /api/documents/[id]/shares` (owner-only; POST **upserts** so granting again just changes the role), `DELETE /api/documents/[id]/shares/[userId]` (owner-only revoke). Guards: can't share with yourself, unknown users and bad roles → 400, non-owner managing shares → 403.
+- UI: Share button + dialog on the doc page (owner only). Since there are exactly 3 seeded users, the dialog lists every other user with a No access / Viewer / Editor select + Revoke — simpler and more reviewable than an email-invite flow.
+- Server enforcement needed **no new work** on document routes: they've gone through `canRead`/`canWrite` since P1.
+- **Verified** full matrix with curl as Alice/Bob/Carol (15 checks): no access → 404; editor can read+write; viewer can read but write → 403; non-owner share management → 403; non-owner delete → 403; self-share → 400; bad role → 400; revoke drops access back to 404; viewer→editor upgrade enables writes.
