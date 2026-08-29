@@ -53,3 +53,11 @@ Newest entries at the bottom. Phases follow PRD §7.
 - `POST /api/upload` (multipart): validates extension (`.txt`/`.md` only), size (≤1 MB), non-empty; title derived from filename. Conversion in `src/lib/import.ts` — `.md` via `marked` → HTML → `generateJSON` from **`@tiptap/html/server`** (the default `@tiptap/html` import throws in Node — caught this by testing before wiring it in); `.txt` split on blank lines into paragraphs. Schema-based conversion doubles as sanitization (ARCHITECTURE.md AD-7).
 - `UploadButton` on the dashboard: hidden file input, inline error display, navigates to the new doc on success. Supported types + limit stated on the button/UI.
 - **Verified** with curl: `.md` becomes heading/bold/bulletList nodes; `.txt` becomes paragraphs; `.pdf`, empty file, 1.06 MB file, and missing file field each rejected 400 with a clear message.
+- Committed `feat: txt/md file upload into new document`, pushed, deployed.
+
+## P5 — Tests & hardening
+
+- Vitest: 14 tests across `permissions.test.ts` (owner/editor/viewer/stranger matrix for `resolveAccess`/`canRead`/`canWrite`/`isOwner`, incl. owner-with-share edge case) and `import.test.ts` (txt paragraph splitting, CRLF, whitespace-only, md heading/bold/list conversion, script-tag stripping). The resolver being a pure function meant zero mocking.
+- Hardening: `PATCH /api/documents/[id]` now caps request bodies at 2 MB (413) so autosave payloads can't grow unbounded. Verified 2.2 MB → 413, normal → 200.
+- Lint fix: `react-hooks/set-state-in-effect` in ShareDialog — replaced the `useEffect`-on-open with fetching in the open-button handler (less code, same behavior, better React style).
+- `npm run lint`, `npm test` (14/14), `npm run build` all clean.

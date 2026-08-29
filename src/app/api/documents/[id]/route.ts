@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { canRead, canWrite, isOwner, resolveAccess } from "@/lib/permissions";
-import { MAX_TITLE_LENGTH } from "@/lib/validation";
+import { MAX_CONTENT_BYTES, MAX_TITLE_LENGTH } from "@/lib/validation";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -47,7 +47,14 @@ export async function PATCH(req: Request, { params }: Params) {
 
   let body: { title?: unknown; content?: unknown };
   try {
-    body = await req.json();
+    const raw = await req.text();
+    if (raw.length > MAX_CONTENT_BYTES) {
+      return NextResponse.json(
+        { error: "Document is too large to save" },
+        { status: 413 }
+      );
+    }
+    body = JSON.parse(raw);
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }

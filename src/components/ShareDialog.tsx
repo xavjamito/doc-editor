@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 interface UserInfo {
   id: string;
@@ -25,7 +25,7 @@ export default function ShareDialog({ docId, allUsers, ownerId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  const loadShares = useCallback(async () => {
+  async function loadShares() {
     const res = await fetch(`/api/documents/${docId}/shares`);
     if (res.ok) {
       const body = await res.json();
@@ -33,11 +33,14 @@ export default function ShareDialog({ docId, allUsers, ownerId }: Props) {
     } else {
       setError("Failed to load sharing info");
     }
-  }, [docId]);
+  }
 
-  useEffect(() => {
-    if (open) loadShares();
-  }, [open, loadShares]);
+  function openDialog() {
+    setShares(null);
+    setError(null);
+    setOpen(true);
+    loadShares();
+  }
 
   async function grant(userId: string, role: "viewer" | "editor") {
     setPending(true);
@@ -84,7 +87,7 @@ export default function ShareDialog({ docId, allUsers, ownerId }: Props) {
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={openDialog}
         className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
       >
         Share
